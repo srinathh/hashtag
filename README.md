@@ -1,36 +1,39 @@
 # hashtag
-Package hashtag implements the logic of [Twitter's official Java hashtag
-extractor](https://github.com/twitter/twitter-text) in Go Language. 
-It implements all the logic used by twitter including correctly 
-handling both # and \uFF03 as hashtag markers and correctly 
-omitting hashtags that are follwed immediately by hash or url markers.
+Package hashtag implements extraction of Twitter type hashtags, mentions and
+replies form text in Go. This package partially ports extraction routines from
+[Twitter's official Java package](https://github.com/twitter/twitter-text) 
+to Go and runs most of the standard twitter-text conformance tests. It does not
+yet implement URL extraction (and hence URL/Hashtag overlaps), cashtags and lists
 
-As an additional feature, this package also extracts hashtags correctly
-from multiline strings.
+Since the package attempts to closely follow the Twitter-Text Java API, function 
+names may be longer than typical Go package function names
 
 Installation
 ------------
+Note: As the package matures, I plan to move this to gopkg.in
 ```
 go get github.com/srinathh/hashtag
 ```
 
 Usage
 -----
-First import the package
+Import the package as
 ```
 import "github.com/srinathh/hashtag"
 ```
 
-Then call the exported function `ExtractHashtags(s string) []string`to extract
-the hashtag texts. ExtractHashtags extracts hashtag texts from the input parameter
-without hash markers and returns them as a slice of strings. For example
-```
-hashtag.ExtractHashTags(" #user1 mention #user2 here #user3 ")
-```
-will return thestring slice
-```
-[]string{"user1","user2","user3"}
-```
+This package supports the following functions to extract hashtags and mentions 
+with or without position markers. The functions omit # and @ characters 
+(and also their higher unicode number counterparts  ＠ and ＃) from return values
+- `ExtractHashtags(text string) []string`
+- `ExtractHashtagsWithIndices(text string) []Entity`
+- `ExtractMentions(text string) []string`
+- `ExtractMentionsWithIndices(text string) []Entity`
+- `ExtractReply(text string) string`
+
+Documentation
+-------------
+Read the full documentation and examples on [GoDoc](http://godoc.org/github.com/srinathh/hashtag)
 
 
 
