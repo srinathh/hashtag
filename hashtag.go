@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	unicode_spaces = "[" +
+	unicodeSpaces = "[" +
 		"\\x{0009}-\\x{000d}" + //  # White_Space # Cc   [5] <control-0009>..<control-000D>
 		"\\x{0020}" + // White_Space # Zs       SPACE
 		"\\x{0085}" + // White_Space # Cc       <control-0085>
@@ -47,9 +47,9 @@ const (
 		"\\x{3000}" + // White_Space # Zs       IDEOGRAPHIC SPACE
 		"]"
 
-	hashtag_letters       = "\\pL\\pM"
-	hashtag_numerals      = "\\p{Nd}"
-	hashtag_special_chars = "_" + //underscore
+	hashtagLetters      = "\\pL\\pM"
+	hashtagNumerals     = "\\p{Nd}"
+	hashtagSpecialChars = "_" + //underscore
 		"\\x{200c}" + // ZERO WIDTH NON-JOINER (ZWNJ)
 		"\\x{200d}" + // ZERO WIDTH JOINER (ZWJ)
 		"\\x{a67e}" + // CYRILLIC KAVYKA
@@ -65,14 +65,14 @@ const (
 		"\\x{0f0c}" + // TIBETAN MARK DELIMITER TSHEG BSTAR
 		"\\x{0f0d}" // TIBETAN MARK SHAD
 
-	hashtag_letters_numerals     = hashtag_letters + hashtag_numerals + hashtag_special_chars
-	hashtag_letters_numerals_set = "[" + hashtag_letters_numerals + "]"
-	hashtag_letters_set          = "[" + hashtag_letters + "]"
+	hashtagLettersNumerals    = hashtagLetters + hashtagNumerals + hashtagSpecialChars
+	hashtagLettersNumeralsSet = "[" + hashtagLettersNumerals + "]"
+	hashtagLettersSet         = "[" + hashtagLetters + "]"
 
-	at_signs_chars = "@\\x{FF20}"
-	at_signs       = "[" + at_signs_chars + "]"
+	atSignsChars = "@\\x{FF20}"
+	atSigns      = "[" + atSignsChars + "]"
 
-	latin_accents_chars = "\\x{00c0}-\\x{00d6}\\x{00d8}-\\x{00f6}\\x{00f8}-\\x{00ff}" + // Latin-1
+	latinAccentsChars = "\\x{00c0}-\\x{00d6}\\x{00d8}-\\x{00f6}\\x{00f8}-\\x{00ff}" + // Latin-1
 		"\\x{0100}-\\x{024f}" + // Latin Extended A and B
 		"\\x{0253}\\x{0254}\\x{0256}\\x{0257}\\x{0259}\\x{025b}\\x{0263}\\x{0268}\\x{026f}\\x{0272}\\x{0289}\\x{028b}" + // IPA Extensions
 		"\\x{02bb}" + // Hawaiian
@@ -80,20 +80,20 @@ const (
 		"\\x{1e00}-\\x{1eff}" // Latin Extended Additional (mostly for Vietnamese)
 )
 
-var valid_mention = regexp.MustCompile("([^A-Za-z0-9_!#$%&*" + at_signs_chars + "]|^|[Rr][tT]:?)(" + at_signs + "+)([A-Za-z0-9_]{1,20})")
+var validMention = regexp.MustCompile("([^A-Za-z0-9_!#$%&*" + atSignsChars + "]|^|[Rr][tT]:?)(" + atSigns + "+)([A-Za-z0-9_]{1,20})")
 
-var invalid_mention_match_end = regexp.MustCompile("^(?:[" + at_signs_chars + latin_accents_chars + "]|://)")
+var invalidMentionMatchEnd = regexp.MustCompile("^(?:[" + atSignsChars + latinAccentsChars + "]|://)")
 
-var valid_hashtag = regexp.MustCompile("(?m)(?:^|[^&" + hashtag_letters_numerals + "])(?:#|\\x{FF03})(" +
-	hashtag_letters_numerals_set + "*" + hashtag_letters_set + hashtag_letters_numerals_set +
+var validHashtag = regexp.MustCompile("(?m)(?:^|[^&" + hashtagLettersNumerals + "])(?:#|\\x{FF03})(" +
+	hashtagLettersNumeralsSet + "*" + hashtagLettersSet + hashtagLettersNumeralsSet +
 	"*)")
 
-var invalid_hashtag_match_end *regexp.Regexp = regexp.MustCompile("^(?:[#＃]|://)")
+var invalidHashtagMatchEnd = regexp.MustCompile("^(?:[#＃]|://)")
 
-var valid_reply *regexp.Regexp = regexp.MustCompile("^(?:" + unicode_spaces + ")*" + at_signs + "([A-Za-z0-9_]{1,20})")
+var validReply = regexp.MustCompile("^(?:" + unicodeSpaces + ")*" + atSigns + "([A-Za-z0-9_]{1,20})")
 
 /*
-Type Entity is used by ExtractXXXXWithIndices functions to return the position
+Entity is used by ExtractXXXXWithIndices functions to return the position
 and text extracted. This may be expanded in the future to support List slugs
 */
 type Entity struct {
@@ -103,7 +103,7 @@ type Entity struct {
 }
 
 /*
-Function ExtractHashtags extracts hashtags without the hash markers from input
+ExtractHashtags extracts hashtags without the hash markers from input
 text and returns them as a slice of strings.
 */
 func ExtractHashtags(text string) []string {
@@ -117,7 +117,7 @@ func ExtractHashtags(text string) []string {
 }
 
 /*
-Function ExtractHashtagsWithIndices extracts hashtags without the hash markers from
+ExtractHashtagsWithIndices extracts hashtags without the hash markers from
 input text and returns them as a slice of Entities containing start/end positions.
 */
 func ExtractHashtagsWithIndices(text string) []Entity {
@@ -125,11 +125,11 @@ func ExtractHashtagsWithIndices(text string) []Entity {
 		return []Entity{}
 	}
 
-	matches := valid_hashtag.FindAllStringSubmatchIndex(text, -1)
+	matches := validHashtag.FindAllStringSubmatchIndex(text, -1)
 	entities := []Entity{}
 
 	for _, match := range matches {
-		if !invalid_hashtag_match_end.MatchString(text[match[1]:]) {
+		if !invalidHashtagMatchEnd.MatchString(text[match[1]:]) {
 			entities = append(entities, Entity{
 				Start: match[2],
 				End:   match[3],
@@ -141,7 +141,7 @@ func ExtractHashtagsWithIndices(text string) []Entity {
 }
 
 /*
-Function ExtractMentionsWithIndices extracts mentions without the @ markers from
+ExtractMentionsWithIndices extracts mentions without the @ markers from
 input text and returns them as a slice of Entities containing start/end positions.
 */
 func ExtractMentionsWithIndices(text string) []Entity {
@@ -149,10 +149,10 @@ func ExtractMentionsWithIndices(text string) []Entity {
 		return []Entity{}
 	}
 
-	matches := valid_mention.FindAllStringSubmatchIndex(text, -1)
+	matches := validMention.FindAllStringSubmatchIndex(text, -1)
 	entities := []Entity{}
 	for _, match := range matches {
-		if !invalid_mention_match_end.MatchString(text[match[1]:]) {
+		if !invalidMentionMatchEnd.MatchString(text[match[1]:]) {
 			entities = append(entities, Entity{
 				Start: match[6],
 				End:   match[7],
@@ -165,7 +165,7 @@ func ExtractMentionsWithIndices(text string) []Entity {
 }
 
 /*
-Function ExtractMentions extracts mentions without the @ markers from
+ExtractMentions extracts mentions without the @ markers from
 input text and returns them as a slice of strings.
 */
 func ExtractMentions(text string) []string {
@@ -179,7 +179,7 @@ func ExtractMentions(text string) []string {
 }
 
 /*
-Function ExtractReply extracts reply username without the
+ExtractReply extracts reply username without the
 @ marker from input text and returns it as a string.
 Empty string signals no reply username
 */
@@ -188,19 +188,11 @@ func ExtractReply(text string) string {
 		return ""
 	}
 
-	matches := valid_reply.FindAllStringSubmatchIndex(text, -1)
+	matches := validReply.FindAllStringSubmatchIndex(text, -1)
 	for _, match := range matches {
-		if !invalid_mention_match_end.MatchString(text[match[1]:]) {
+		if !invalidMentionMatchEnd.MatchString(text[match[1]:]) {
 			return text[match[2]:match[3]]
 		}
 	}
 	return ""
-}
-
-func reply_test_wrapper(text string) []string {
-	if ret := ExtractReply(text); ret == "" {
-		return []string{}
-	} else {
-		return []string{ret}
-	}
 }
