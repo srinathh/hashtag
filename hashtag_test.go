@@ -2,11 +2,12 @@ package hashtag
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Test struct {
@@ -33,7 +34,7 @@ func TestConformance(t *testing.T) {
 
 	testfuncs := map[string]ExtractFunc{
 		"mentions": ExtractMentions,
-		"replies":  reply_test_wrapper,
+		"replies":  replyTestWrapper,
 		"hashtags": ExtractHashtags,
 	}
 
@@ -45,7 +46,14 @@ func TestConformance(t *testing.T) {
 			}
 		}
 	}
+}
 
+func replyTestWrapper(text string) []string {
+	ret := ExtractReply(text)
+	if ret == "" {
+		return []string{}
+	}
+	return []string{ret}
 }
 
 func ExampleExtractHashtags() {
